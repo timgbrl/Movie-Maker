@@ -69,8 +69,9 @@ Open `http://localhost:3000`.
   - Add Kling credentials (preferred: `KLING_ACCESS_KEY` + `KLING_SECRET_KEY` for JWT token signing)
   - Optional fallback: `KLING_API_KEY`
   - Set `KLING_API_BASE_URL` (default: `https://api-singapore.klingai.com`)
-  - Optional: `KLING_CREATE_URL` (full create endpoint override)
+  - Optional: `KLING_CREATE_URL` (full create endpoint override; default `.../v1/videos/omni-video`)
   - Optional: `KLING_STATUS_URL_TEMPLATE` (e.g. `https://.../videos/{jobId}`)
+  - Optional OmniVideo params: `KLING_MODEL` (default `kling-video-o1`), `KLING_MODE` (default `pro`), `KLING_ASPECT_RATIO` (default `1:1`)
 - Kling integration is implemented as a REST stub with create + poll + download behavior.
 
 ## Where files are saved
@@ -107,12 +108,12 @@ If you still see mock outputs after setting keys:
 - Quick diagnostics endpoint: `GET /api/kling-diagnostics` shows mock mode, auth mode, key presence, URL overrides, DNS lookup, and connectivity probe result.
 - You can also test from shell:
   - `curl -i "$KLING_API_BASE_URL"`
-  - `curl -i "${KLING_CREATE_URL:-$KLING_API_BASE_URL/v1/videos}"`
+  - `curl -i "${KLING_CREATE_URL:-$KLING_API_BASE_URL/v1/videos/omni-video}"`
   If these fail with proxy/tunnel errors, your network policy or proxy is blocking Kling.
 - If your Kling account uses different endpoint paths, set env overrides:
   - `KLING_CREATE_URL` (full POST URL)
   - `KLING_STATUS_URL_TEMPLATE` (must include `{jobId}` placeholder)
-- If you get `404 ... /v1/videos`, your account/model likely uses a different create endpoint path. Set `KLING_CREATE_URL` and `KLING_STATUS_URL_TEMPLATE` from the OmniVideo docs for your account region.
+- If you get `404 ... /v1/videos/omni-video`, your account/model likely uses a different create endpoint path. Set `KLING_CREATE_URL` and `KLING_STATUS_URL_TEMPLATE` from the OmniVideo docs for your account region.
 
 About `KLING_API_BASE_URL`:
 
