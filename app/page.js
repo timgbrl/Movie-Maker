@@ -32,7 +32,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [ideaProvider, setIdeaProvider] = useState('unknown');
-  const [sceneProvider, setSceneProvider] = useState('unknown');
+  const [scenePlannerProvider, setScenePlannerProvider] = useState('unknown');
+  const [videoProvider, setVideoProvider] = useState('unknown');
 
   const currentStep = useMemo(() => {
     if (!ideas.length) return 1;
@@ -58,7 +59,8 @@ export default function HomePage() {
       setCustomization(null);
       setMoviePlan(null);
       setRenderResult(null);
-      setSceneProvider('unknown');
+      setScenePlannerProvider('unknown');
+      setVideoProvider('unknown');
     } catch (e) {
       setError(e.message);
     } finally {
@@ -79,7 +81,7 @@ export default function HomePage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to generate scene plan');
       setMoviePlan(json);
-      setSceneProvider(json.provider || 'unknown');
+      setScenePlannerProvider(json.provider || 'unknown');
     } catch (e) {
       setError(e.message);
     } finally {
@@ -100,6 +102,7 @@ export default function HomePage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to render movie');
       setRenderResult(json);
+      setVideoProvider(json.videoProvider || 'unknown');
     } catch (e) {
       setError(e.message);
     } finally {
@@ -118,7 +121,8 @@ export default function HomePage() {
       {error && <p className="rounded-md border border-rose-700 bg-rose-900/40 px-3 py-2 text-sm">{error}</p>}
       <div className="flex flex-wrap gap-2 text-xs">
         <span className="rounded border border-slate-700 px-2 py-1 text-slate-300">Ideas provider: {ideaProvider}</span>
-        <span className="rounded border border-slate-700 px-2 py-1 text-slate-300">Scenes provider: {sceneProvider}</span>
+        <span className="rounded border border-slate-700 px-2 py-1 text-slate-300">Scene planner provider: {scenePlannerProvider}</span>
+        <span className="rounded border border-slate-700 px-2 py-1 text-slate-300">Video provider: {videoProvider}</span>
       </div>
 
       <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900 p-5">
@@ -155,7 +159,8 @@ export default function HomePage() {
               setCustomization(normalizeCustomization(idea, runtimeSeconds));
               setMoviePlan(null);
               setRenderResult(null);
-              setSceneProvider('unknown');
+              setScenePlannerProvider('unknown');
+              setVideoProvider('unknown');
             }}
           />
         </section>

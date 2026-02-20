@@ -93,9 +93,11 @@ If you still see mock outputs after setting keys:
 - Set `USE_MOCK_DATA=false` exactly (we also accept `0`, `off`, `no` as false).
 - In the UI, check the provider badges:
   - `Ideas provider: openai` means real OpenAI is being used.
-  - `Scenes provider: openai` means real OpenAI is being used.
+  - `Scene planner provider: openai` means the script/scene generation step used OpenAI (this is expected).
   - If either says `mock`, env/key detection failed for that step.
-- In final output, `Video provider: kling` means Kling was used; `mock` means fallback/mock path.
+- `Video provider: kling` means the render step reached Kling successfully; `mock` means fallback/mock path.
+
+- If render shows `fetch failed`, check the returned error text: it now includes the exact Kling URL that failed (DNS/network/auth/endpoint mismatch).
 
 About `KLING_API_BASE_URL`:
 
