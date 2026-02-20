@@ -6,7 +6,15 @@ export async function GET() {
 
   return Response.json({
     useMockData: shouldUseMockData(),
+    hasKlingAccessKey: Boolean(process.env.KLING_ACCESS_KEY?.trim()),
+    hasKlingSecretKey: Boolean(process.env.KLING_SECRET_KEY?.trim()),
     hasKlingApiKey: Boolean(process.env.KLING_API_KEY?.trim()),
+    authMode:
+      process.env.KLING_ACCESS_KEY?.trim() && process.env.KLING_SECRET_KEY?.trim()
+        ? 'jwt-access-secret'
+        : process.env.KLING_API_KEY?.trim()
+          ? 'bearer-api-key'
+          : 'missing',
     klingApiBaseUrl: process.env.KLING_API_BASE_URL || '',
     klingCreateUrlOverride: process.env.KLING_CREATE_URL || '',
     klingStatusUrlTemplateOverride: process.env.KLING_STATUS_URL_TEMPLATE || '',

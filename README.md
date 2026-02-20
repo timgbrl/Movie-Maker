@@ -66,7 +66,9 @@ Open `http://localhost:3000`.
 - To use real APIs:
   - Set `USE_MOCK_DATA=false`
   - Add `OPENAI_API_KEY`
-  - Add `KLING_API_KEY` and `KLING_API_BASE_URL`
+  - Add Kling credentials (preferred: `KLING_ACCESS_KEY` + `KLING_SECRET_KEY` for JWT token signing)
+  - Optional fallback: `KLING_API_KEY`
+  - Set `KLING_API_BASE_URL` (default: `https://api-singapore.klingai.com`)
   - Optional: `KLING_CREATE_URL` (full create endpoint override)
   - Optional: `KLING_STATUS_URL_TEMPLATE` (e.g. `https://.../videos/{jobId}`)
 - Kling integration is implemented as a REST stub with create + poll + download behavior.
@@ -101,10 +103,10 @@ If you still see mock outputs after setting keys:
 
 - If render shows `fetch failed`, check the returned error text: it now includes the exact Kling URL that failed (DNS/network/auth/endpoint mismatch).
 
-- Quick diagnostics endpoint: `GET /api/kling-diagnostics` shows mock mode, key presence, proxy env presence, URL overrides, DNS lookup, and connectivity probe result.
+- Quick diagnostics endpoint: `GET /api/kling-diagnostics` shows mock mode, auth mode, key presence, URL overrides, DNS lookup, and connectivity probe result.
 - You can also test from shell:
   - `curl -i "$KLING_API_BASE_URL"`
-  - `curl -i "${KLING_CREATE_URL:-$KLING_API_BASE_URL/videos}"`
+  - `curl -i "${KLING_CREATE_URL:-$KLING_API_BASE_URL/v1/videos}"`
   If these fail with proxy/tunnel errors, your network policy or proxy is blocking Kling.
 - If your Kling account uses different endpoint paths, set env overrides:
   - `KLING_CREATE_URL` (full POST URL)
