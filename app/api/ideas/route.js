@@ -16,13 +16,13 @@ export async function POST(request) {
       '{{RUNTIME_SECONDS}}', String(parsed.runtimeSeconds)
     );
 
-    const data = await chatJson({
+    const result = await chatJson({
       systemPrompt: IDEA_SYSTEM_PROMPT,
       userPrompt,
       mockData: mockIdeas
     });
 
-    return Response.json(data, { status: 200 });
+    return Response.json({ ...result.data, provider: result.provider }, { status: 200 });
   } catch (error) {
     const message = error?.message || 'Failed to generate ideas';
     return Response.json({ error: message }, { status: 400 });

@@ -57,7 +57,8 @@ export async function POST(request) {
       sceneCount: sceneVideos.length,
       downloadUrl: `/api/movie/${movieId}`,
       previewUrl: `/api/movie/${movieId}`,
-      savedTo: `app/output/${movieId}/final-movie.mp4`
+      savedTo: `app/output/${movieId}/final-movie.mp4`,
+      videoProvider: sceneVideos.every((v) => v.provider === 'kling') ? 'kling' : 'mock'
     });
   } catch (error) {
     const message = error?.message || 'Failed to render movie';

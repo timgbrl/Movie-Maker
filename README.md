@@ -82,3 +82,22 @@ Open `http://localhost:3000`.
 ## Deterministic prompts
 
 Prompt templates are in `lib/prompts.js` and request JSON-only outputs with fixed schema.
+
+
+## Troubleshooting real APIs
+
+If you still see mock outputs after setting keys:
+
+- Restart the Next.js dev server after changing env vars (`Ctrl+C` then `npm run dev`).
+- Ensure `.env.local` is being used (not only `.env.example`).
+- Set `USE_MOCK_DATA=false` exactly (we also accept `0`, `off`, `no` as false).
+- In the UI, check the provider badges:
+  - `Ideas provider: openai` means real OpenAI is being used.
+  - `Scenes provider: openai` means real OpenAI is being used.
+  - If either says `mock`, env/key detection failed for that step.
+- In final output, `Video provider: kling` means Kling was used; `mock` means fallback/mock path.
+
+About `KLING_API_BASE_URL`:
+
+- It is an API host, not a website homepage. Opening `https://api.kling.ai/v1` in a browser may return blank/404 and that can be normal.
+- What matters is whether the specific API endpoints used by your provider docs respond correctly with auth.

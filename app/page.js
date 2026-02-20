@@ -31,6 +31,8 @@ export default function HomePage() {
   const [renderResult, setRenderResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [ideaProvider, setIdeaProvider] = useState('unknown');
+  const [sceneProvider, setSceneProvider] = useState('unknown');
 
   const currentStep = useMemo(() => {
     if (!ideas.length) return 1;
@@ -51,10 +53,12 @@ export default function HomePage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to generate ideas');
       setIdeas(json.ideas || []);
+      setIdeaProvider(json.provider || 'unknown');
       setSelectedIdea(null);
       setCustomization(null);
       setMoviePlan(null);
       setRenderResult(null);
+      setSceneProvider('unknown');
     } catch (e) {
       setError(e.message);
     } finally {
@@ -75,6 +79,7 @@ export default function HomePage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to generate scene plan');
       setMoviePlan(json);
+      setSceneProvider(json.provider || 'unknown');
     } catch (e) {
       setError(e.message);
     } finally {
@@ -111,6 +116,10 @@ export default function HomePage() {
       </header>
 
       {error && <p className="rounded-md border border-rose-700 bg-rose-900/40 px-3 py-2 text-sm">{error}</p>}
+      <div className="flex flex-wrap gap-2 text-xs">
+        <span className="rounded border border-slate-700 px-2 py-1 text-slate-300">Ideas provider: {ideaProvider}</span>
+        <span className="rounded border border-slate-700 px-2 py-1 text-slate-300">Scenes provider: {sceneProvider}</span>
+      </div>
 
       <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900 p-5">
         <h2 className="text-lg font-semibold">1) Idea generation</h2>
@@ -146,6 +155,7 @@ export default function HomePage() {
               setCustomization(normalizeCustomization(idea, runtimeSeconds));
               setMoviePlan(null);
               setRenderResult(null);
+              setSceneProvider('unknown');
             }}
           />
         </section>
@@ -178,6 +188,7 @@ export default function HomePage() {
             Movie ready: <span className="font-semibold">{renderResult.title}</span>
           </p>
           <p className="text-xs text-slate-400">Saved on server at: {renderResult.savedTo}</p>
+          <p className="text-xs text-slate-400">Video provider: {renderResult.videoProvider}</p>
           <video controls className="w-full rounded-md border border-slate-700" src={renderResult.previewUrl} />
           <a
             className="inline-block rounded-md bg-sky-500 px-4 py-2 font-medium text-white hover:bg-sky-400"

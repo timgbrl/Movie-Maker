@@ -24,13 +24,13 @@ export async function POST(request) {
     const inputJson = JSON.stringify(parsed, null, 2);
     const userPrompt = SCENE_USER_PROMPT_TEMPLATE.replace('{{INPUT_JSON}}', inputJson);
 
-    const data = await chatJson({
+    const result = await chatJson({
       systemPrompt: SCENE_SYSTEM_PROMPT,
       userPrompt,
       mockData: mockScenePlan
     });
 
-    return Response.json(data, { status: 200 });
+    return Response.json({ ...result.data, provider: result.provider }, { status: 200 });
   } catch (error) {
     const message = error?.message || 'Failed to generate scenes';
     return Response.json({ error: message }, { status: 400 });
