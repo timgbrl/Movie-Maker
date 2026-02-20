@@ -11,7 +11,8 @@ const requestSchema = z.object({
       z.object({
         sceneNumber: z.number(),
         klingPrompt: z.string(),
-        multishot: z.boolean()
+        multishot: z.boolean(),
+        durationSeconds: z.number().optional()
       })
     )
   }),
@@ -55,7 +56,8 @@ export async function POST(request) {
       title: parsed.moviePlan.title,
       sceneCount: sceneVideos.length,
       downloadUrl: `/api/movie/${movieId}`,
-      previewUrl: `/api/movie/${movieId}`
+      previewUrl: `/api/movie/${movieId}`,
+      savedTo: `app/output/${movieId}/final-movie.mp4`
     });
   } catch (error) {
     const message = error?.message || 'Failed to render movie';

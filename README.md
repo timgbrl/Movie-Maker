@@ -62,15 +62,22 @@ Open `http://localhost:3000`.
 ## Notes on API behavior
 
 - By default `USE_MOCK_DATA=true`, so ChatGPT and Kling calls are mocked.
+- In mock mode, we still generate **real .mp4 scene clips** with ffmpeg and merge them into a final .mp4, so the full flow is testable without API keys.
 - To use real APIs:
   - Set `USE_MOCK_DATA=false`
   - Add `OPENAI_API_KEY`
   - Add `KLING_API_KEY` and `KLING_API_BASE_URL`
 - Kling integration is implemented as a REST stub with create + poll + download behavior.
 
+## Where files are saved
+
+- Scene clips and final movie are stored under `app/output/<movieId>/`.
+- Final merged output is `app/output/<movieId>/final-movie.mp4`.
+- The render API response includes this path in `savedTo`, and the UI also displays it.
+
 ## ffmpeg requirement
 
-`/api/render-movie` uses ffmpeg concat to merge scenes. Install ffmpeg on your machine.
+`/api/render-movie` uses ffmpeg to generate mock scene clips and to merge scenes. Install ffmpeg on your machine.
 
 ## Deterministic prompts
 

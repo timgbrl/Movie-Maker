@@ -177,6 +177,7 @@ export default function HomePage() {
           <p className="text-sm text-slate-300">
             Movie ready: <span className="font-semibold">{renderResult.title}</span>
           </p>
+          <p className="text-xs text-slate-400">Saved on server at: {renderResult.savedTo}</p>
           <video controls className="w-full rounded-md border border-slate-700" src={renderResult.previewUrl} />
           <a
             className="inline-block rounded-md bg-sky-500 px-4 py-2 font-medium text-white hover:bg-sky-400"
