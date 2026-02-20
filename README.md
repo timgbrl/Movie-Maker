@@ -112,5 +112,6 @@ If you still see mock outputs after setting keys:
 
 About `KLING_API_BASE_URL`:
 
-- It is an API host, not a website homepage. Opening `https://api.kling.ai/v1` in a browser may return blank/404 and that can be normal.
+- It is an API host, not a website homepage. Opening the base URL in a browser may return blank/404 and that can be normal.
+- If you get `ENOTFOUND api.kling.ai`, treat it as a likely endpoint mismatch first: confirm your provider's exact API hostname/path and update `KLING_API_BASE_URL` (and overrides if needed).
 - What matters is whether the specific API endpoints used by your provider docs respond correctly with auth.
