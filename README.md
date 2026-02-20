@@ -99,6 +99,12 @@ If you still see mock outputs after setting keys:
 
 - If render shows `fetch failed`, check the returned error text: it now includes the exact Kling URL that failed (DNS/network/auth/endpoint mismatch).
 
+- Quick diagnostics endpoint: `GET /api/kling-diagnostics` shows whether mock mode is on, whether Kling key is present, and a connectivity probe result.
+- You can also test from shell:
+  - `curl -i "$KLING_API_BASE_URL"`
+  - `curl -i "$KLING_API_BASE_URL/videos"`
+  If these fail with proxy/tunnel errors, your network policy is blocking Kling.
+
 About `KLING_API_BASE_URL`:
 
 - It is an API host, not a website homepage. Opening `https://api.kling.ai/v1` in a browser may return blank/404 and that can be normal.
