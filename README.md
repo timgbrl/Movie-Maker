@@ -102,6 +102,7 @@ If you still see mock outputs after setting keys:
 - `Video provider: kling` means the render step reached Kling successfully; `mock` means fallback/mock path.
 
 - If render shows `fetch failed`, check the returned error text: it now includes the exact Kling URL that failed (DNS/network/auth/endpoint mismatch).
+- Kling API responses with non-zero service code are now surfaced as explicit service errors (`code`, `message`, optional requestId) to match documented error semantics.
 
 - Quick diagnostics endpoint: `GET /api/kling-diagnostics` shows mock mode, auth mode, key presence, URL overrides, DNS lookup, and connectivity probe result.
 - You can also test from shell:
