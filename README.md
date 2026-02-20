@@ -112,6 +112,7 @@ If you still see mock outputs after setting keys:
 - If your Kling account uses different endpoint paths, set env overrides:
   - `KLING_CREATE_URL` (full POST URL)
   - `KLING_STATUS_URL_TEMPLATE` (must include `{jobId}` placeholder)
+- If you get `404 ... /v1/videos`, your account/model likely uses a different create endpoint path. Set `KLING_CREATE_URL` and `KLING_STATUS_URL_TEMPLATE` from the OmniVideo docs for your account region.
 
 About `KLING_API_BASE_URL`:
 
