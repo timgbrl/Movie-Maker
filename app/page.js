@@ -1,204 +1,138 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import IdeaCards from '@/components/IdeaCards';
-import CustomizationForm from '@/components/CustomizationForm';
-import ScenePreview from '@/components/ScenePreview';
 
-function normalizeCustomization(idea, runtimeSeconds) {
-  return {
-    selectedIdea: {
-      id: idea.id,
-      title: idea.title,
-      synopsis: idea.synopsis,
-      tone: idea.tone
-    },
-    characters: idea.suggestedCharacters.slice(0, 5).map((name) => ({ name, actor: 'Unknown' })),
-    locations: idea.suggestedLocations.slice(0, 3),
-    genre: idea.tone,
-    runtimeSeconds,
-    overrides: ''
-  };
+function getProgress(sceneStatuses = []) {
+  if (!sceneStatuses.length) return 0;
+  const finished = sceneStatuses.filter((scene) =>
+    ['succeeded', 'success', 'completed', 'done'].includes(String(scene.status).toLowerCase())
+  ).length;
+  return Math.round((finished / sceneStatuses.length) * 100);
 }
 
 export default function HomePage() {
-  const [prompt, setPrompt] = useState('Create an alternative ending to Game of Thrones. 30 sec to 5 minutes.');
-  const [runtimeSeconds, setRuntimeSeconds] = useState(120);
-  const [ideas, setIdeas] = useState([]);
-  const [selectedIdea, setSelectedIdea] = useState(null);
-  const [customization, setCustomization] = useState(null);
-  const [moviePlan, setMoviePlan] = useState(null);
-  const [renderResult, setRenderResult] = useState(null);
+  const [prompt, setPrompt] = useState('A gritty cyberpunk chase through neon streets that ends with a sunrise rooftop reunion.');
+  const [movieId, setMovieId] = useState('');
+  const [status, setStatus] = useState('idle');
+  const [sceneStatuses, setSceneStatuses] = useState([]);
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [ideaProvider, setIdeaProvider] = useState('unknown');
-  const [scenePlannerProvider, setScenePlannerProvider] = useState('unknown');
-  const [videoProvider, setVideoProvider] = useState('unknown');
 
-  const currentStep = useMemo(() => {
-    if (!ideas.length) return 1;
-    if (ideas.length && !moviePlan) return selectedIdea ? 2 : 1;
-    if (moviePlan && !renderResult) return 4;
-    return 5;
-  }, [ideas.length, selectedIdea, moviePlan, renderResult]);
+  const progress = useMemo(() => getProgress(sceneStatuses), [sceneStatuses]);
 
-  async function generateIdeas() {
+  async function generateMovie() {
     try {
-      setError('');
       setLoading(true);
-      const res = await fetch('/api/ideas', {
+      setError('');
+      setResult(null);
+      setSceneStatuses([]);
+      setStatus('starting');
+
+      const response = await fetch('/api/generate-video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, runtimeSeconds })
+        body: JSON.stringify({ prompt })
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Failed to generate ideas');
-      setIdeas(json.ideas || []);
-      setIdeaProvider(json.provider || 'unknown');
-      setSelectedIdea(null);
-      setCustomization(null);
-      setMoviePlan(null);
-      setRenderResult(null);
-      setScenePlannerProvider('unknown');
-      setVideoProvider('unknown');
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.error || 'Failed to start generation');
+
+      setMovieId(json.movieId);
+      setSceneStatuses(json.tasks || []);
+      setStatus(json.status || 'processing');
     } catch (e) {
       setError(e.message);
+      setStatus('failed');
     } finally {
       setLoading(false);
     }
   }
 
-  async function generateScenes() {
-    if (!customization) return;
-    try {
-      setError('');
-      setLoading(true);
-      const res = await fetch('/api/generate-scenes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(customization)
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Failed to generate scene plan');
-      setMoviePlan(json);
-      setScenePlannerProvider(json.provider || 'unknown');
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  async function pollStatus() {
+    if (!movieId) return;
 
-  async function renderMovie() {
-    if (!moviePlan) return;
     try {
-      setError('');
       setLoading(true);
-      const res = await fetch('/api/render-movie', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ moviePlan, references: {} })
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Failed to render movie');
-      setRenderResult(json);
-      setVideoProvider(json.videoProvider || 'unknown');
+      setError('');
+
+      const response = await fetch(`/api/generate-video?movieId=${encodeURIComponent(movieId)}`);
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.error || 'Failed to poll status');
+
+      setStatus(json.status || 'processing');
+      setSceneStatuses(json.sceneStatuses || []);
+
+      if (json.status === 'complete') {
+        setResult(json);
+      }
     } catch (e) {
       setError(e.message);
+      setStatus('failed');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
+    <main className="mx-auto max-w-4xl space-y-6 px-6 py-8">
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-wider text-sky-400">Movie Maker</p>
-        <h1 className="text-3xl font-bold">Prompt-to-movie pipeline (ChatGPT + Kling 3.0)</h1>
-        <p className="text-sm text-slate-400">Current step: {currentStep} / 5</p>
+        <h1 className="text-3xl font-bold">Single Prompt → Cinematic Movie (Higgsfield)</h1>
       </header>
 
       {error && <p className="rounded-md border border-rose-700 bg-rose-900/40 px-3 py-2 text-sm">{error}</p>}
-      <div className="flex flex-wrap gap-2 text-xs">
-        <span className="rounded border border-slate-700 px-2 py-1 text-slate-300">Ideas provider: {ideaProvider}</span>
-        <span className="rounded border border-slate-700 px-2 py-1 text-slate-300">Scene planner provider: {scenePlannerProvider}</span>
-        <span className="rounded border border-slate-700 px-2 py-1 text-slate-300">Video provider: {videoProvider}</span>
-      </div>
 
       <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900 p-5">
-        <h2 className="text-lg font-semibold">1) Idea generation</h2>
-        <textarea rows={3} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
-        <div className="flex max-w-xs flex-col gap-2">
-          <label className="text-sm">Duration (seconds, 30-300)</label>
-          <input
-            type="number"
-            min={30}
-            max={300}
-            value={runtimeSeconds}
-            onChange={(e) => setRuntimeSeconds(Number(e.target.value))}
-          />
-        </div>
-        <button
-          type="button"
-          className="rounded-md bg-sky-500 px-4 py-2 font-medium text-white hover:bg-sky-400 disabled:opacity-40"
-          disabled={loading}
-          onClick={generateIdeas}
-        >
-          {loading ? 'Working...' : 'Generate 3 ideas'}
-        </button>
-      </section>
-
-      {!!ideas.length && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">2) Pick one concept</h2>
-          <IdeaCards
-            ideas={ideas}
-            selectedId={selectedIdea?.id}
-            onSelect={(idea) => {
-              setSelectedIdea(idea);
-              setCustomization(normalizeCustomization(idea, runtimeSeconds));
-              setMoviePlan(null);
-              setRenderResult(null);
-              setScenePlannerProvider('unknown');
-              setVideoProvider('unknown');
-            }}
-          />
-        </section>
-      )}
-
-      {customization && !moviePlan && (
-        <section>
-          <CustomizationForm value={customization} onChange={setCustomization} onContinue={generateScenes} />
-        </section>
-      )}
-
-      {moviePlan && (
-        <section className="space-y-3">
-          <ScenePreview moviePlan={moviePlan} />
+        <textarea rows={4} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+        <div className="flex gap-3">
           <button
             type="button"
             className="rounded-md bg-emerald-500 px-4 py-2 font-medium text-white hover:bg-emerald-400 disabled:opacity-40"
             disabled={loading}
-            onClick={renderMovie}
+            onClick={generateMovie}
           >
-            {loading ? 'Rendering...' : '4) Generate videos and merge movie'}
+            {loading && status === 'starting' ? 'Starting...' : 'Generate Cinematic Movie'}
           </button>
-        </section>
-      )}
 
-      {renderResult && (
-        <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <h2 className="text-lg font-semibold">5) Final output</h2>
-          <p className="text-sm text-slate-300">
-            Movie ready: <span className="font-semibold">{renderResult.title}</span>
-          </p>
-          <p className="text-xs text-slate-400">Saved on server at: {renderResult.savedTo}</p>
-          <p className="text-xs text-slate-400">Video provider: {renderResult.videoProvider}</p>
-          <video controls className="w-full rounded-md border border-slate-700" src={renderResult.previewUrl} />
-          <a
-            className="inline-block rounded-md bg-sky-500 px-4 py-2 font-medium text-white hover:bg-sky-400"
-            href={renderResult.downloadUrl}
+          <button
+            type="button"
+            className="rounded-md bg-sky-500 px-4 py-2 font-medium text-white hover:bg-sky-400 disabled:opacity-40"
+            disabled={loading || !movieId || status === 'complete'}
+            onClick={pollStatus}
           >
+            {loading && status !== 'starting' ? 'Polling...' : 'Check Progress'}
+          </button>
+        </div>
+      </section>
+
+      <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900 p-5">
+        <h2 className="text-lg font-semibold">Progress</h2>
+        <p className="text-sm text-slate-300">Status: {status}</p>
+        <div className="h-3 w-full overflow-hidden rounded bg-slate-800">
+          <div className="h-full bg-sky-500" style={{ width: `${progress}%` }} />
+        </div>
+        <p className="text-xs text-slate-400">{progress}% complete</p>
+
+        {!!sceneStatuses.length && (
+          <ul className="space-y-2 text-sm">
+            {sceneStatuses.map((scene) => (
+              <li key={scene.taskId} className="rounded border border-slate-700 p-2">
+                <p className="font-medium">Scene {scene.sceneIndex + 1}</p>
+                <p className="text-slate-300">{scene.sceneDescription}</p>
+                <p className="text-xs text-slate-400">Task: {scene.taskId}</p>
+                <p className="text-xs text-slate-400">Status: {scene.status}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {result && (
+        <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900 p-5">
+          <h2 className="text-lg font-semibold">Final Movie</h2>
+          <p className="text-xs text-slate-400">Saved on server at: {result.savedTo}</p>
+          <video controls className="w-full rounded-md border border-slate-700" src={result.previewUrl} />
+          <a className="inline-block rounded-md bg-sky-500 px-4 py-2 font-medium text-white hover:bg-sky-400" href={result.downloadUrl}>
             Download final movie
           </a>
         </section>
